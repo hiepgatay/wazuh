@@ -25,7 +25,7 @@
     </mitre>
     <group>nos_lab,syscheck,pci_dss_11.5,</group>
   </rule>
-
+ 
   <!-- Ví dụ ghi đè: nâng level SSH invalid user (bỏ comment nếu muốn dùng) -->
   <!--
   <rule id="5710" level="10" overwrite="yes">
