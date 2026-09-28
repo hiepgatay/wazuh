@@ -1,0 +1,13 @@
+# SSL / TLS certs (generated locally)
+**/*.pem
+**/*.key
+**/wazuh_indexer_ssl_certs/
+
+# Logs and local tooling
+*.log
+.cursor-worker-keep
+.DS_Store
+Thumbs.db
+
+# Nested git metadata if leftover
+lab/wazuh-docker/.git/

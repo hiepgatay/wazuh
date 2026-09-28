@@ -1,0 +1,39 @@
+<!--
+  Luật tùy chỉnh cho lab Nhóm 5 - Wazuh
+  Copy vào: /var/ossec/etc/rules/local_rules.xml trên Wazuh manager
+  ID tùy chỉnh: 100000–120000
+-->
+<group name="nos_lab_custom,">
+
+  <!-- Bắt chuỗi đánh dấu lab trong log -->
+  <rule id="100100" level="10">
+    <match>WAZUH_LAB_ALERT</match>
+    <description>NOS Lab: phat hien chuoi WAZUH_LAB_ALERT trong log</description>
+    <mitre>
+      <id>T1070</id>
+    </mitre>
+    <group>nos_lab,custom,</group>
+  </rule>
+
+  <!-- Tăng mức cảnh báo khi sửa file passwd (dựa trên FIM rule cha 550) -->
+  <rule id="100110" level="12">
+    <if_sid>550</if_sid>
+    <field name="file">/etc/passwd|/etc/shadow</field>
+    <description>NOS Lab: thay doi file tai khoan he thong (passwd/shadow)</description>
+    <mitre>
+      <id>T1098</id>
+    </mitre>
+    <group>nos_lab,syscheck,pci_dss_11.5,</group>
+  </rule>
+
+  <!-- Ví dụ ghi đè: nâng level SSH invalid user (bỏ comment nếu muốn dùng) -->
+  <!--
+  <rule id="5710" level="10" overwrite="yes">
+    <if_sid>5700</if_sid>
+    <match>illegal user|invalid user</match>
+    <description>sshd: Attempt to login using a non-existent user (lab overwrite)</description>
+    <group>authentication_failed,invalid_login,</group>
+  </rule>
+  -->
+
+</group>
