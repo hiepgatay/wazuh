@@ -344,6 +344,15 @@ Ví dụ ý tưởng brute-force: nếu cùng `srcip` khớp rule đăng nhập 
 - Cảnh báo riêng khi xóa file trong thư mục giám sát.
 - Gắn MITRE (ví dụ T1070 – Indicator Removal, T1222 – File Permissions Modification…).
 
+## 6.8. Luật lab của nhóm (`lab/rules/local_rules.xml`)
+
+| Rule ID | Level | Mục đích | Kịch bản |
+|---------|-------|----------|----------|
+| **100100** | 10 | Khớp chuỗi `WAZUH_LAB_ALERT` | KB4 |
+| **100110** | 12 | FIM đổi `/etc/passwd` hoặc `/etc/shadow` | KB3 |
+| **100120** | 10 | FIM thư mục Windows `C:\wazuh-lab` | KB2 (Win) |
+| **100130** | 10 | Đánh dấu tạo tài khoản Windows (lab) | KB6 |
+
 Chi tiết cấu hình lab nằm ở Chương 7–8 và thư mục `lab/`.
 
 ---
@@ -493,21 +502,54 @@ Nội dung luật mẫu nằm tại `lab/rules/local_rules.xml`.
 
 *(Chèn Hình 8.4 — logtest + alert custom)*
 
-## 8.5. Bảng tổng hợp kết quả
+## 8.5. Kịch bản 5 — Đăng nhập Windows thất bại (Event 4625)
+
+**Mục tiêu:** Minh họa phát hiện authentication failure trên endpoint Windows (tương đương KB1 phía Linux).
+
+**Các bước (máy lab có Wazuh Agent):**
+```powershell
+.\lab\scripts\run-scenarios.ps1 -Scenario win-auth-fail
+```
+
+Script gọi API `LogonUser` với user giả / mật khẩu sai trên **chính máy lab** (không quét mạng bên ngoài). Kỳ vọng: Security Event **4625** và alert nhóm `authentication_failed` trên Dashboard.
+
+Lọc gợi ý: `data.win.system.eventID:4625`
+
+*(Chèn Hình 8.5 — Alert Windows failed logon)*
+
+## 8.6. Kịch bản 6 — Tạo tài khoản Windows (Event 4720)
+
+**Mục tiêu:** Phát hiện tạo user local (dấu hiệu persistence); kèm custom rule **100130** (MITRE T1136).
+
+**Các bước (PowerShell Administrator):**
+```powershell
+.\lab\scripts\run-scenarios.ps1 -Scenario win-create-user
+```
+
+Script tạo user tạm `wazuh_lab_demo`, chờ để Agent thu Event **4720**, rồi xóa user (Event **4726**).
+
+Lọc gợi ý: `data.win.system.eventID:4720` hoặc `rule.id:100130`
+
+*(Chèn Hình 8.6 — Alert tạo tài khoản Windows)*
+
+## 8.7. Bảng tổng hợp kết quả
 
 | Kịch bản | Thành công? | Rule/Module liên quan | Ghi chú |
 |----------|-------------|------------------------|---------|
 | Agent online | *(điền)* | Agent management | |
-| FIM | *(điền)* | syscheck | |
-| SSH fail/BF | *(điền)* | sshd rules | |
+| FIM | *(điền)* | syscheck / 100120 (Win) | |
+| SSH fail/BF | *(điền)* | sshd rules | Linux |
 | Custom rule | *(điền)* | 100100 | |
+| Win failed logon | *(điền)* | Event 4625 | Windows |
+| Win create user | *(điền)* | Event 4720 / 100130 | Windows |
 
-## 8.6. Nhận xét thử nghiệm
+## 8.8. Nhận xét thử nghiệm
 
 - Độ trễ alert thường vài giây đến vài chục giây tùy buffering.
 - Certificate tự ký gây cảnh báo trình duyệt — bình thường trong lab.
 - Cần đồng bộ **phiên bản agent ≈ manager**.
 - False positive có thể xảy ra nếu threshold tương quan quá thấp.
+- Trên Windows cần bật audit Logon / Account Management nếu không thấy Event 4625/4720.
 
 ---
 

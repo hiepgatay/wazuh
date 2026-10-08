@@ -78,8 +78,10 @@ Luồng xử lý mỗi sự kiện:
 
 File `lab/rules/local_rules.xml` (ID lab `100000–120000`):
 
-- **100100** (`level 10`) — Khớp chuỗi `WAZUH_LAB_ALERT` trong log (demo detection tùy chỉnh, MITRE T1070)
-- **100110** (`level 12`) — Nâng cảnh báo khi FIM báo thay đổi `/etc/passwd` hoặc `/etc/shadow` (dựa rule 550, MITRE T1098)
+- **100100** (`level 10`) — Chuỗi `WAZUH_LAB_ALERT` (MITRE T1070)
+- **100110** (`level 12`) — FIM đổi `/etc/passwd` hoặc `/etc/shadow` (MITRE T1098)
+- **100120** (`level 10`) — FIM thư mục Windows `C:\wazuh-lab` (MITRE T1565)
+- **100130** (`level 10`) — Tạo tài khoản Windows lab (MITRE T1136)
 
 Nạp lên manager rồi restart; kiểm thử bằng `wazuh-logtest` (xem `lab/HUONG-DAN-CAI-DAT.md`).
 
@@ -88,8 +90,11 @@ Nạp lên manager rồi restart; kiểm thử bằng `wazuh-logtest` (xem `lab/
 | Đường dẫn | Nội dung |
 |-----------|----------|
 | `lab/HUONG-DAN-CAI-DAT.md` | Cài Docker stack, agent, nạp luật, xử lý lỗi |
+| `lab/HUONG-DAN-DEMO-KICH-BAN.md` | **Demo 6 kịch bản**: SSH, FIM, `/etc`, Custom, Win 4625, Win tạo user |
 | `lab/rules/local_rules.xml` | Luật phát hiện tùy chỉnh |
-| `lab/scripts/run-scenarios.ps1` | Kịch bản: `status`, `fim`, `custom-log` |
+| `lab/scripts/run-scenarios.ps1` | `status`, `load-rules`, `ssh`, `fim`, `system-file`, `custom-log`, `win-auth-fail`, `win-create-user` |
+| `lab/scripts/kb1-*.sh` … `kb4-*.sh` | Script bash (Linux / WSL) |
+| `lab/scripts/kb5-win-*.ps1`, `kb6-win-*.ps1` | Script PowerShell demo Windows |
 | `lab/wazuh-docker/` | Wazuh Docker official (v4.14.8), dùng `single-node` |
 | `lab/screenshots/` | Ảnh Dashboard (agent active, FIM, custom alert…) |
 
@@ -112,10 +117,18 @@ docker compose ps
 - Chi tiết agent, FIM, nạp luật: `lab/HUONG-DAN-CAI-DAT.md`
 
 ```powershell
-# Trạng thái / kịch bản thử nghiệm
+# Trạng thái / nạp luật / kịch bản thử nghiệm
 .\lab\scripts\run-scenarios.ps1 -Scenario status
+.\lab\scripts\run-scenarios.ps1 -Scenario load-rules
+.\lab\scripts\run-scenarios.ps1 -Scenario ssh -Target <IP_VICTIM>
 .\lab\scripts\run-scenarios.ps1 -Scenario fim
+.\lab\scripts\run-scenarios.ps1 -Scenario system-file
 .\lab\scripts\run-scenarios.ps1 -Scenario custom-log
+# Windows (máy có Agent):
+.\lab\scripts\run-scenarios.ps1 -Scenario win-auth-fail
+.\lab\scripts\run-scenarios.ps1 -Scenario win-create-user   # PowerShell Admin
+
+# Chi tiết từng bước demo: lab\HUONG-DAN-DEMO-KICH-BAN.md
 
 # Log manager
 cd "lab\wazuh-docker\single-node"
@@ -129,8 +142,9 @@ Dừng stack: `docker compose down` (thêm `-v` nếu muốn xóa dữ liệu In
 Sau khi agent **Active** và đã kích hoạt kịch bản:
 
 1. **Agents** — Endpoint online
-2. **Threat Hunting / Security events** — Lọc theo `rule.groups` (`syscheck`, `authentication_failed`, `nos_lab`…)
-3. **FIM** — Alert tạo/sửa/xóa file trong thư mục giám sát
-4. **Custom rule** — Alert rule `100100` khi log chứa `WAZUH_LAB_ALERT`
+2. **Threat Hunting / Security events** — Lọc `syscheck`, `authentication_failed`, `nos_lab`…
+3. **FIM** — Alert tạo/sửa/xóa trong thư mục giám sát (`rule.id:100120` trên Windows)
+4. **Custom rule** — `100100` khi log chứa `WAZUH_LAB_ALERT`
+5. **Windows** — Event `4625` (KB5), `4720` / rule `100130` (KB6)
 
 Mỗi alert thường gồm: thời gian, agent, rule id/level, mô tả, (nếu có) MITRE technique — đó là đầu ra của hệ thống phát hiện tấn công / xâm nhập trong lab này.

@@ -1,0 +1,23 @@
+<!--
+  Dán vào ossec.conf của Agent, rồi restart agent.
+  Chi tiết: lab/HUONG-DAN-DEMO-KICH-BAN.md — Phụ lục A.
+-->
+
+<!-- ========== Linux ========== -->
+<!-- Trong <syscheck>: -->
+<directories realtime="yes">/tmp/wazuh-lab</directories>
+
+<!-- ========== Windows — FIM (KB2) ========== -->
+<!-- Trong <syscheck>: -->
+<!--
+<directories realtime="yes">C:\wazuh-lab</directories>
+-->
+
+<!-- Windows — thu thập file log lab cho custom rule 100100 (KB4) -->
+<!-- Trong <ossec_config>: -->
+<!--
+<localfile>
+  <location>C:\wazuh-lab\lab-alerts.log</location>
+  <log_format>syslog</log_format>
+</localfile>
+-->

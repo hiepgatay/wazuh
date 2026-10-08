@@ -112,6 +112,8 @@
     <!-- Directories to check  (perform all possible verifications) -->
     <directories>/etc,/usr/bin,/usr/sbin</directories>
     <directories>/bin,/sbin,/boot</directories>
+    <!-- Lab FIM demo (KB2): tạo/sửa/xóa trong /tmp/wazuh-lab -->
+    <directories realtime="yes">/tmp/wazuh-lab</directories>
 
     <!-- Files/directories to ignore -->
     <ignore>/etc/mtab</ignore>

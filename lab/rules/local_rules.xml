@@ -25,7 +25,29 @@
     </mitre>
     <group>nos_lab,syscheck,pci_dss_11.5,</group>
   </rule>
- 
+
+  <!-- Windows lab: nâng cảnh báo FIM trên C:\wazuh-lab (KB2) -->
+  <rule id="100120" level="10">
+    <if_sid>550,553,554</if_sid>
+    <field name="file">(?i)[C-Z]:\\\\wazuh-lab\\\\</field>
+    <description>NOS Lab: thay doi file trong thu muc FIM Windows C:\wazuh-lab</description>
+    <mitre>
+      <id>T1565</id>
+    </mitre>
+    <group>nos_lab,syscheck,windows,</group>
+  </rule>
+
+  <!-- Windows lab: đánh dấu cảnh báo tạo tài khoản (Event 4720) — KB6 -->
+  <rule id="100130" level="10">
+    <if_sid>60103,60106,18107</if_sid>
+    <match>wazuh_lab_demo|A user account was created</match>
+    <description>NOS Lab: phat hien tao tai khoan Windows (lab demo)</description>
+    <mitre>
+      <id>T1136</id>
+    </mitre>
+    <group>nos_lab,windows,account_changed,</group>
+  </rule>
+
   <!-- Ví dụ ghi đè: nâng level SSH invalid user (bỏ comment nếu muốn dùng) -->
   <!--
   <rule id="5710" level="10" overwrite="yes">

@@ -94,13 +94,21 @@ docker exec -it $mgr /var/ossec/bin/wazuh-logtest
 
 ## 6. Chạy kịch bản
 
-Dùng script:
+Hướng dẫn demo chi tiết (KB1–KB6): **`lab/HUONG-DAN-DEMO-KICH-BAN.md`**
 
 ```powershell
-.\lab\scripts\run-scenarios.ps1
+.\lab\scripts\run-scenarios.ps1 -Scenario status
+.\lab\scripts\run-scenarios.ps1 -Scenario load-rules
+.\lab\scripts\run-scenarios.ps1 -Scenario ssh -Target <IP_VICTIM>
+.\lab\scripts\run-scenarios.ps1 -Scenario fim
+.\lab\scripts\run-scenarios.ps1 -Scenario system-file
+.\lab\scripts\run-scenarios.ps1 -Scenario custom-log
+.\lab\scripts\run-scenarios.ps1 -Scenario win-auth-fail
+.\lab\scripts\run-scenarios.ps1 -Scenario win-create-user   # Admin
 ```
 
-Hoặc làm thủ công theo `bao-cao` Chương 8.
+Script: `kb1`–`kb4` (bash), `kb5-win-failed-logon.ps1`, `kb6-win-create-user.ps1`.  
+Báo cáo tổng hợp: `bao-cao` Chương 8.
 
 ## 7. Chụp ảnh minh họa báo cáo
 
@@ -111,6 +119,9 @@ Lưu vào `lab/screenshots/`:
 3. `03-fim-alert.png`
 4. `04-custom-rule-alert.png`
 5. `05-ssh-or-auth-fail.png` (nếu có)
+6. `06-system-file-alert.png` (nếu có)
+7. `07-win-auth-fail.png` (Windows 4625)
+8. `08-win-create-user.png` (Windows 4720)
 
 ## 8. Dừng lab
 
