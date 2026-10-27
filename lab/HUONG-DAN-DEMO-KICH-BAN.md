@@ -10,6 +10,7 @@
 | **KB4** Custom Rule | Linux / Windows | Chuỗi `WAZUH_LAB_ALERT` | **100100** | `kb4-custom-rule.sh` hoặc `-Scenario custom-log` |
 | **KB5** Win Failed Logon | **Windows** | Đăng nhập sai → Event **4625** | `60104`… / `authentication_failed` | `kb5-win-failed-logon.ps1` |
 | **KB6** Win Create User | **Windows** | Tạo user local → Event **4720** | mặc định + custom **100130** | `kb6-win-create-user.ps1` |
+| **KB7** WinRAR → shell | **Windows** | Sysmon: WinRAR sinh shell, file chạy từ Temp | **100010**, **100011**, **100012** | `kb7-win-sysmon-sim.ps1` |
 
 Dashboard: https://localhost — `admin` / `123456`
 
@@ -328,6 +329,64 @@ data.win.eventdata.targetUserName:wazuh_lab_demo
 
 ---
 
+## Kịch bản 7 — Windows: WinRAR sinh shell (Sysmon)
+
+### Ý tưởng
+Báo cáo mô tả một chuỗi lừa người dùng mở file nén: WinRAR (bản cũ hơn 6.23, CVE-2023-38831) có thể chạy nhầm một script, script gọi shell, file thực thi xuất hiện trong thư mục tạm, rồi có kết nối ra ngoài. Phần lab này chỉ dựng **phát hiện và phản ứng** trên máy Windows của nhóm:
+
+| Rule | Việc Wazuh bắt | MITRE |
+|------|----------------|-------|
+| **100010** | `WinRAR.exe` tạo `cmd.exe` hoặc `powershell.exe` | T1059, T1204 |
+| **100011** | Shell hoặc WinRAR chạy file nằm trong `Temp` / `AppData` | T1059, T1204 |
+| **100012** | Chính `cmd.exe` tự mở kết nối khác loopback | T1071 |
+
+Script mô phỏng chỉ `echo`, `ping 127.0.0.1` và `hostname.exe`. Không có payload, file RAR khai thác, reverse shell hay keylogger. Cách xử lý thật: cập nhật WinRAR lên **6.23 trở lên**.
+
+### Chuẩn bị (PowerShell Admin, một lần)
+
+1. Cài [Sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon) (bản chính thức của Microsoft).
+2. Wazuh Agent trên máy này đang **Active**.
+3. Chạy:
+
+```powershell
+.\lab\scripts\run-scenarios.ps1 -Scenario win-winrar-setup
+.\lab\scripts\run-scenarios.ps1 -Scenario load-rules
+```
+
+`win-winrar-setup` áp `lab\config\sysmonconfig-lab.xml`, thêm kênh `Microsoft-Windows-Sysmon/Operational` vào agent, chép `kill_malware.cmd` vào agent, và thêm Active Response trên manager nếu container đang chạy.
+
+### Cách chạy mô phỏng
+
+```powershell
+.\lab\scripts\run-scenarios.ps1 -Scenario win-winrar
+```
+
+### Xem kết quả
+
+**Event Viewer:** Applications and Services Logs → Microsoft → Windows → Sysmon → Operational (Event ID **1**).
+
+**Dashboard:**
+
+```
+rule.id:(100010 OR 100011)
+```
+
+```
+rule.groups:att_win
+```
+
+Active Response (nếu đã setup) ghi `C:\wazuh-lab\active-response.log` khi tắt đúng PID của cây tiến trình lab.
+
+Rule **100012** không được kích bằng script này, vì `ping 127.0.0.1` không phải `cmd.exe` tự mở kết nối ra máy khác. Rule **100011** cũng khớp khi `cmd.exe` chạy bất kỳ file nào trong `Temp`, nên máy đang cài phần mềm có thể có thêm alert.
+
+### Lời thuyết trình ngắn
+> “Hành vi đáng ngờ là WinRAR đẻ ra cmd. Sysmon ghi Process Create, agent đẩy eventchannel về manager, rule 100010 cảnh báo. Active Response chỉ tắt PID đúng trong alert, không quét cả máy.”
+
+### Screenshot
+`lab/screenshots/09-win-winrar-sysmon.png`
+
+---
+
 ## Thứ tự demo trước giảng viên (gợi ý)
 
 ### Phương án A — Có Linux victim (~15 phút)
@@ -348,7 +407,8 @@ data.win.eventdata.targetUserName:wazuh_lab_demo
 | 2–5 | **KB2 FIM** (`C:\wazuh-lab`) |
 | 5–8 | **KB5** Failed logon 4625 |
 | 8–11 | **KB6** Create user 4720 / rule 100130 |
-| 11–12 | **KB4** custom-log / logtest 100100 |
+| 11–14 | **KB7** WinRAR → shell, rule 100010 / 100011 |
+| 14–15 | **KB4** custom-log / logtest 100100 |
 
 ---
 
@@ -362,6 +422,7 @@ data.win.eventdata.targetUserName:wazuh_lab_demo
 | 4 | Custom Rule | ☐ | **100100** | `04-custom-rule-alert.png` |
 | 5 | Win Failed Logon | ☐ | Event **4625** | `07-win-auth-fail.png` |
 | 6 | Win Create User | ☐ | Event **4720** / **100130** | `08-win-create-user.png` |
+| 7 | WinRAR → shell | ☐ | **100010** / **100011** | `09-win-winrar-sysmon.png` |
 
 ---
 
@@ -421,4 +482,5 @@ Mẫu: `lab/config/agent-fim-lab-snippet.xml`.
 | Không thấy Event 4625 | `auditpol /set /subcategory:"Logon" /failure:enable` (Admin) |
 | Không thấy Event 4720 | Chạy KB6 bằng **Admin**; kiểm tra audit Account Management |
 | Rule 100130 không lên | Vẫn thấy 4720 mặc định cũng đủ demo; nạp lại `local_rules.xml` |
+| Không thấy 100010 | Chưa cài Sysmon, chưa thêm eventchannel, hoặc chưa `load-rules`. Event ID 1 phải có ParentImage kết thúc bằng `WinRAR.exe` |
 | Dashboard chậm | Refresh, *Last 15 minutes* |

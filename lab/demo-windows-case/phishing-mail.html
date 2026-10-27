@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>LAB — Mail phishing mô phỏng</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; background: #e8e8e8; margin: 0; padding: 24px; }
+    .mail { max-width: 640px; margin: 0 auto; background: #fff; border: 1px solid #ccc; }
+    .bar { background: #1a73e8; color: #fff; padding: 12px 16px; font-size: 14px; }
+    .meta { padding: 12px 16px; border-bottom: 1px solid #eee; font-size: 13px; color: #444; }
+    .meta b { color: #111; }
+    .body { padding: 20px 16px; font-size: 14px; line-height: 1.5; }
+    .attach { margin: 16px; padding: 12px; border: 1px dashed #999; background: #fafafa; }
+    .warn { margin: 16px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; font-size: 12px; }
+    code { background: #f0f0f0; padding: 2px 4px; }
+  </style>
+</head>
+<body>
+  <div class="mail">
+    <div class="bar">Hộp thư đến (LAB DEMO — không gửi mail thật)</div>
+    <div class="meta">
+      <div><b>Từ:</b> phongtuyensinh@ptit.edu.vn.lab-fake</div>
+      <div><b>Tới:</b> ban (may lab Windows)</div>
+      <div><b>Chủ đề:</b> [KHAN] Thong bao tuyen sinh Thac si Dot 2 nam 2025 — tai file dinh kem</div>
+    </div>
+    <div class="body">
+      <p>Kinh gui Quy vi,</p>
+      <p>Phong Dao tao gui kem <b>thong bao tuyen sinh Thac si Dot 2 nam 2025</b>.
+         De xem noi dung, vui long tai va mo file dinh kem bang WinRAR / phan mem doc PDF.</p>
+      <p>Trong lab: day la <b>mail gia</b> de thuyet trinh. Khong co may chu that, khong co malware.</p>
+      <p>Tran trong,<br/>Phong tuyen sinh (mo phong)</p>
+    </div>
+    <div class="attach">
+      <b>Dinh kem:</b><br/>
+      Thong_bao_tuyen_sinh_Thac_si_Dot2_2025_LAB.rar<br/>
+      <small>Duong dan: <code>C:\wazuh-lab\demo-case\out\</code> hoac <code>lab\demo-windows-case\out\</code></small>
+    </div>
+    <div class="warn">
+      LAB ONLY: Trong bao cao co CVE-2023-38831 (WinRAR &lt; 6.23). Demo nay dung RAR thuong + file
+      <code>MO_LAB_kich_hoat.cmd</code> vo hai. Khi mo .cmd tu WinRAR, Sysmon thay WinRAR.exe tao cmd.exe
+      (rule 100010) — cung hanh vi SOC can bat, khong dung exploit.
+    </div>
+  </div>
+</body>
+</html>

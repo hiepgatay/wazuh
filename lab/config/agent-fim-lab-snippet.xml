@@ -13,6 +13,15 @@
 <directories realtime="yes">C:\wazuh-lab</directories>
 -->
 
+<!-- Windows — Sysmon cho KB7 (rule 100010-100012) -->
+<!-- Trong <ossec_config>: -->
+<!--
+<localfile>
+  <location>Microsoft-Windows-Sysmon/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+-->
+
 <!-- Windows — thu thập file log lab cho custom rule 100100 (KB4) -->
 <!-- Trong <ossec_config>: -->
 <!--

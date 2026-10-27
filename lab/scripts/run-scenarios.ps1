@@ -9,7 +9,8 @@
 param(
   [ValidateSet(
     'status','fim','ssh','system-file','custom-log','load-rules',
-    'win-auth-fail','win-create-user','help'
+    'win-auth-fail','win-create-user','win-winrar','win-winrar-setup',
+    'win-attack','win-defense-prepare','help'
   )]
   [string]$Scenario = 'help',
 
@@ -45,7 +46,8 @@ function Invoke-LoadRules {
   docker exec $mgr /var/ossec/bin/wazuh-control restart
   Write-Host "Da nap local_rules.xml va restart manager ($mgr)." -ForegroundColor Green
   Write-Host "Rule lab: 100100 (WAZUH_LAB_ALERT), 100110 (passwd/shadow)," -ForegroundColor Cyan
-  Write-Host "           100120 (FIM C:\wazuh-lab), 100130 (Win create user)." -ForegroundColor Cyan
+  Write-Host "           100120 (FIM C:\wazuh-lab), 100130 (Win create user)," -ForegroundColor Cyan
+  Write-Host "           100010-100012 (WinRAR/shell, KB7)." -ForegroundColor Cyan
 }
 
 function Invoke-FimLab {
@@ -168,6 +170,12 @@ function Invoke-WinCreateUser {
   & $script
 }
 
+function Invoke-WinWinrar {
+  param([string]$Mode)
+  $script = Join-Path $Scripts 'kb7-win-sysmon-sim.ps1'
+  & $script -Mode $Mode
+}
+
 switch ($Scenario) {
   'status'           { Show-Status }
   'load-rules'       { Invoke-LoadRules }
@@ -177,9 +185,14 @@ switch ($Scenario) {
   'custom-log'       { Invoke-CustomLog }
   'win-auth-fail'    { Invoke-WinAuthFail }
   'win-create-user'  { Invoke-WinCreateUser }
+  'win-winrar'           { Invoke-WinWinrar -Mode Sim }
+  'win-winrar-setup'     { Invoke-WinWinrar -Mode Setup }
+  'win-defense-prepare'  { & (Join-Path $Scripts 'win-attack-defense.ps1') -Phase Prepare }
+  'win-attack'           { & (Join-Path $Scripts 'win-attack-defense.ps1') -Phase Attack }
   default {
     Write-Host @"
-Cach dung (xem chi tiet: lab\HUONG-DAN-DEMO-KICH-BAN.md):
+Cach dung (xem chi tiet: lab\HUONG-DAN-DEMO-KICH-BAN.md
+  va lab\HUONG-DAN-KICH-BAN-WINDOWS.md):
 
   .\run-scenarios.ps1 -Scenario status
   .\run-scenarios.ps1 -Scenario load-rules
@@ -189,10 +202,13 @@ Cach dung (xem chi tiet: lab\HUONG-DAN-DEMO-KICH-BAN.md):
   .\run-scenarios.ps1 -Scenario custom-log
   .\run-scenarios.ps1 -Scenario win-auth-fail
   .\run-scenarios.ps1 -Scenario win-create-user
+  .\run-scenarios.ps1 -Scenario win-defense-prepare
+  .\run-scenarios.ps1 -Scenario win-attack
 
 Thu tu demo goi y:
   Linux:  status -> load-rules -> ssh -> fim -> system-file -> custom-log
-  Windows: status -> load-rules -> fim -> win-auth-fail -> win-create-user -> custom-log
+  Windows ATT: Admin Prepare -> load-rules -> win-attack (xem HUONG-DAN-KICH-BAN-WINDOWS.md)
+  Windows khac: fim -> win-auth-fail -> win-create-user -> custom-log
   Chup anh vao lab\screenshots
 "@
   }

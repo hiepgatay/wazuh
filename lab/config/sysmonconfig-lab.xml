@@ -1,0 +1,25 @@
+<!--
+  Sysmon toi thieu cho KB7 (lab Windows).
+  Chi ghi ProcessCreate va NetworkConnect can cho rule 100010-100012.
+  Cai: sysmon64.exe -accepteula -i sysmonconfig-lab.xml
+  Doi cau hinh: sysmon64.exe -c sysmonconfig-lab.xml
+-->
+<Sysmon schemaversion="4.30">
+  <HashAlgorithms>sha256</HashAlgorithms>
+  <EventFiltering>
+    <RuleGroup name="" groupRelation="or">
+      <ProcessCreate onmatch="include">
+        <ParentImage condition="end with">WinRAR.exe</ParentImage>
+        <Image condition="end with">cmd.exe</Image>
+        <Image condition="end with">powershell.exe</Image>
+        <Image condition="end with">pwsh.exe</Image>
+        <Image condition="contains">wazuh-lab-att</Image>
+      </ProcessCreate>
+    </RuleGroup>
+    <RuleGroup name="" groupRelation="or">
+      <NetworkConnect onmatch="include">
+        <Image condition="end with">cmd.exe</Image>
+      </NetworkConnect>
+    </RuleGroup>
+  </EventFiltering>
+</Sysmon>

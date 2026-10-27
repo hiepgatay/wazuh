@@ -29,7 +29,7 @@
   <!-- Windows lab: nâng cảnh báo FIM trên C:\wazuh-lab (KB2) -->
   <rule id="100120" level="10">
     <if_sid>550,553,554</if_sid>
-    <field name="file">(?i)[C-Z]:\\\\wazuh-lab\\\\</field>
+    <field name="file" type="pcre2">(?i)[C-Z]:\\\\wazuh-lab\\\\</field>
     <description>NOS Lab: thay doi file trong thu muc FIM Windows C:\wazuh-lab</description>
     <mitre>
       <id>T1565</id>
@@ -46,6 +46,47 @@
       <id>T1136</id>
     </mitre>
     <group>nos_lab,windows,account_changed,</group>
+  </rule>
+
+  <!--
+    KB7 - Windows: WinRAR sinh shell / file chay tu Temp / cmd mo mang.
+    Tuong ung rule 100010, 100011, 100012 trong bao cao ATTT (phong thu).
+    Can Sysmon Event 1 va Event 3 tren agent.
+  -->
+  <rule id="100010" level="12">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)\\WinRAR\.exe</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(cmd|powershell|pwsh)\.exe</field>
+    <description>ATTT Win: WinRAR.exe tao cmd.exe hoac powershell.exe</description>
+    <mitre>
+      <id>T1059</id>
+      <id>T1204</id>
+    </mitre>
+    <group>att_win,sysmon,process_creation,</group>
+  </rule>
+
+  <rule id="100011" level="12">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)\\(cmd|powershell|pwsh|WinRAR)\.exe</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(Temp|AppData)\\</field>
+    <description>ATTT Win: shell hoac WinRAR khoi chay file trong Temp hoac AppData</description>
+    <mitre>
+      <id>T1059</id>
+      <id>T1204</id>
+    </mitre>
+    <group>att_win,sysmon,process_creation,</group>
+  </rule>
+
+  <rule id="100012" level="10">
+    <if_group>sysmon_event3</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\cmd\.exe$</field>
+    <field name="win.eventdata.initiated" type="pcre2">(?i)^true$</field>
+    <field name="win.eventdata.destinationIp" type="pcre2" negate="yes">^(127\.0\.0\.1|::1|0\.0\.0\.0)$</field>
+    <description>ATTT Win: cmd.exe tu mo ket noi mang ra ngoai may</description>
+    <mitre>
+      <id>T1071</id>
+    </mitre>
+    <group>att_win,sysmon,network,</group>
   </rule>
 
   <!-- Ví dụ ghi đè: nâng level SSH invalid user (bỏ comment nếu muốn dùng) -->

@@ -82,6 +82,7 @@ File `lab/rules/local_rules.xml` (ID lab `100000–120000`):
 - **100110** (`level 12`) — FIM đổi `/etc/passwd` hoặc `/etc/shadow` (MITRE T1098)
 - **100120** (`level 10`) — FIM thư mục Windows `C:\wazuh-lab` (MITRE T1565)
 - **100130** (`level 10`) — Tạo tài khoản Windows lab (MITRE T1136)
+- **100010–100012** — Windows: WinRAR sinh shell, file chạy từ Temp, `cmd.exe` mở mạng (KB7, cần Sysmon)
 
 Nạp lên manager rồi restart; kiểm thử bằng `wazuh-logtest` (xem `lab/HUONG-DAN-CAI-DAT.md`).
 
@@ -90,11 +91,13 @@ Nạp lên manager rồi restart; kiểm thử bằng `wazuh-logtest` (xem `lab/
 | Đường dẫn | Nội dung |
 |-----------|----------|
 | `lab/HUONG-DAN-CAI-DAT.md` | Cài Docker stack, agent, nạp luật, xử lý lỗi |
-| `lab/HUONG-DAN-DEMO-KICH-BAN.md` | **Demo 6 kịch bản**: SSH, FIM, `/etc`, Custom, Win 4625, Win tạo user |
+| `lab/HUONG-DAN-DEMO-KICH-BAN.md` | Demo kịch bản: SSH, FIM, `/etc`, Custom, Win 4625, Win tạo user, KB7 |
+| `lab/HUONG-DAN-KICH-BAN-WINDOWS.md` | Tấn công / phòng thủ Windows (Sysmon / 100010–100012 / AR) |
+| `lab/demo-windows-case/` | **Demo giống báo cáo**: mail + RAR + CMD vô hại (WinRAR tay) |
 | `lab/rules/local_rules.xml` | Luật phát hiện tùy chỉnh |
 | `lab/scripts/run-scenarios.ps1` | `status`, `load-rules`, `ssh`, `fim`, `system-file`, `custom-log`, `win-auth-fail`, `win-create-user` |
 | `lab/scripts/kb1-*.sh` … `kb4-*.sh` | Script bash (Linux / WSL) |
-| `lab/scripts/kb5-win-*.ps1`, `kb6-win-*.ps1` | Script PowerShell demo Windows |
+| `lab/scripts/kb5-win-*.ps1`, `kb6-win-*.ps1`, `kb7-win-*.ps1` | Script PowerShell demo Windows |
 | `lab/wazuh-docker/` | Wazuh Docker official (v4.14.8), dùng `single-node` |
 | `lab/screenshots/` | Ảnh Dashboard (agent active, FIM, custom alert…) |
 
@@ -127,6 +130,10 @@ docker compose ps
 # Windows (máy có Agent):
 .\lab\scripts\run-scenarios.ps1 -Scenario win-auth-fail
 .\lab\scripts\run-scenarios.ps1 -Scenario win-create-user   # PowerShell Admin
+.\lab\scripts\win-attack-defense.ps1 -Phase Prepare   # PowerShell Admin, 1 lần
+.\lab\scripts\run-scenarios.ps1 -Scenario load-rules
+.\lab\scripts\win-attack-defense.ps1 -Phase Attack
+# Chi tiet: lab\HUONG-DAN-KICH-BAN-WINDOWS.md
 
 # Chi tiết từng bước demo: lab\HUONG-DAN-DEMO-KICH-BAN.md
 
@@ -145,6 +152,6 @@ Sau khi agent **Active** và đã kích hoạt kịch bản:
 2. **Threat Hunting / Security events** — Lọc `syscheck`, `authentication_failed`, `nos_lab`…
 3. **FIM** — Alert tạo/sửa/xóa trong thư mục giám sát (`rule.id:100120` trên Windows)
 4. **Custom rule** — `100100` khi log chứa `WAZUH_LAB_ALERT`
-5. **Windows** — Event `4625` (KB5), `4720` / rule `100130` (KB6)
+5. **Windows** — Event `4625` (KB5), `4720` / rule `100130` (KB6), Sysmon rule `100010` / `100011` (KB7)
 
 Mỗi alert thường gồm: thời gian, agent, rule id/level, mô tả, (nếu có) MITRE technique — đó là đầu ra của hệ thống phát hiện tấn công / xâm nhập trong lab này.
